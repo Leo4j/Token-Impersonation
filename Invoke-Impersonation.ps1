@@ -1,3 +1,29 @@
+<#
+
+.SYNOPSIS
+Invoke-Impersonation Author: Rob LP (@L3o4j)
+https://github.com/Leo4j/Invoke-Impersonation
+
+.DESCRIPTION
+Make_Token function written in powershell. Create a token with the provided credentials
+
+.PARAMETER Domain
+Specify the domain info
+
+.PARAMETER UserName
+Specify a UserName
+
+.PARAMETER Password
+Provide a password for the specified UserName
+
+.PARAMETER Rev2Self
+Stops impersonating a token and reverts to previous one
+
+.EXAMPLE
+Invoke-Impersonation -Username "Administrator" -Domain "ferrari.local" -Password "P@ssw0rd!"
+Invoke-Impersonation -RevertToSelf
+#>
+
 # Define the required constants and structs
 Add-Type -TypeDefinition @"
 using System;
@@ -25,7 +51,7 @@ public class Advapi32 {
     [DllImport("advapi32.dll", SetLastError = true)]
     public static extern bool ImpersonateLoggedOnUser(IntPtr hToken);
 	
-	[DllImport("advapi32.dll", SetLastError = true)]
+    [DllImport("advapi32.dll", SetLastError = true)]
     public static extern bool RevertToSelf();
 
     [DllImport("kernel32.dll", SetLastError = true)]
@@ -44,40 +70,55 @@ function Invoke-Impersonation {
         [Parameter(Mandatory=$false)]
         [string]$Domain,
 		
-		[Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false)]
         [switch]$RevertToSelf
     )
 	
-	if ($RevertToSelf) {
-        if ([Advapi32]::RevertToSelf()) {
-            Write-Output "[+] Successfully reverted to original user context."
-        } else {
-            Write-Output "[-] Failed to revert to original user. Error: $($Error[0].Exception.Message)"
+    begin {
+        # Check if RevertToSelf switch is NOT provided
+        if (-not $RevertToSelf) {
+            # If any of the mandatory parameters are missing, throw an error
+            if (-not $Username -or -not $Password -or -not $Domain) {
+                Write-Output "[-] Username, Password, and Domain are mandatory unless the RevertToSelf switch is provided."
+				$PSCmdlet.ThrowTerminatingError((New-Object -TypeName System.Management.Automation.ErrorRecord -ArgumentList (New-Object Exception), "ParameterError", "InvalidArgument", $null))
+            }
         }
-        return
     }
 
-    $tokenHandle = [IntPtr]::Zero
+    process {
+        if ($RevertToSelf) {
+            if ([Advapi32]::RevertToSelf()) {
+                Write-Output "[+] Successfully reverted to original user context."
+            } else {
+                Write-Output "[-] Failed to revert to original user. Error: $($Error[0].Exception.Message)"
+            }
+            return
+        }
 
-    # Use the LogonUser function to get a token
-    $result = [Advapi32]::LogonUser(
-        $Username,
-        $Domain,
-        $Password,
-        [LogonType]::LOGON32_LOGON_NEW_CREDENTIALS,
-        [LogonProvider]::LOGON32_PROVIDER_DEFAULT,
-        [ref]$tokenHandle
-    )
+        $tokenHandle = [IntPtr]::Zero
 
-    if (-not $result) {
-        Write-Output "[-] Failed to obtain user token. Error: $($Error[0].Exception.Message)"
+        # Use the LogonUser function to get a token
+        $result = [Advapi32]::LogonUser(
+            $Username,
+            $Domain,
+            $Password,
+            [LogonType]::LOGON32_LOGON_NEW_CREDENTIALS,
+            [LogonProvider]::LOGON32_PROVIDER_DEFAULT,
+            [ref]$tokenHandle
+        )
+
+        if (-not $result) {
+            Write-Output "[-] Failed to obtain user token. Error: $($Error[0].Exception.Message)"
+            return
+        }
+
+        # Impersonate the user
+        if (-not [Advapi32]::ImpersonateLoggedOnUser($tokenHandle)) {
+            [Advapi32]::CloseHandle($tokenHandle)
+            Write-Output "[-] Failed to impersonate user. Error: $($Error[0].Exception.Message)"
+            return
+        }
+
+        Write-Output "[+] Impersonation successful"
     }
-
-    # Impersonate the user
-    if (-not [Advapi32]::ImpersonateLoggedOnUser($tokenHandle)) {
-        [Advapi32]::CloseHandle($tokenHandle)
-        Write-Output "[-] Failed to impersonate user. Error: $($Error[0].Exception.Message)"
-    }
-
-    Write-Output "[+] Impersonation successful"
 }
