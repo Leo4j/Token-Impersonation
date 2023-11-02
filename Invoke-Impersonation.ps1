@@ -24,6 +24,9 @@ public class Advapi32 {
 
     [DllImport("advapi32.dll", SetLastError = true)]
     public static extern bool ImpersonateLoggedOnUser(IntPtr hToken);
+	
+	[DllImport("advapi32.dll", SetLastError = true)]
+    public static extern bool RevertToSelf();
 
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern bool CloseHandle(IntPtr hToken);
@@ -32,15 +35,27 @@ public class Advapi32 {
 
 function Invoke-Impersonation {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         [string]$Username,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         [string]$Password,
 
-        [Parameter(Mandatory=$true)]
-        [string]$Domain
+        [Parameter(Mandatory=$false)]
+        [string]$Domain,
+		
+		[Parameter(Mandatory=$false)]
+        [switch]$RevertToSelf
     )
+	
+	if ($RevertToSelf) {
+        if ([Advapi32]::RevertToSelf()) {
+            Write-Output "[+] Successfully reverted to original user context."
+        } else {
+            Write-Output "[-] Failed to revert to original user. Error: $($Error[0].Exception.Message)"
+        }
+        return
+    }
 
     $tokenHandle = [IntPtr]::Zero
 
@@ -55,14 +70,14 @@ function Invoke-Impersonation {
     )
 
     if (-not $result) {
-        throw "Failed to obtain user token. Error: $($Error[0].Exception.Message)"
+        Write-Output "[-] Failed to obtain user token. Error: $($Error[0].Exception.Message)"
     }
 
     # Impersonate the user
     if (-not [Advapi32]::ImpersonateLoggedOnUser($tokenHandle)) {
         [Advapi32]::CloseHandle($tokenHandle)
-        throw "Failed to impersonate user. Error: $($Error[0].Exception.Message)"
+        Write-Output "[-] Failed to impersonate user. Error: $($Error[0].Exception.Message)"
     }
 
-    Write-Host "Impersonation successful. To revert, close this PowerShell session or call [Advapi32]::RevertToSelf()"
+    Write-Output "[+] Impersonation successful"
 }
