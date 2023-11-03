@@ -1,11 +1,17 @@
 <#
 
 .SYNOPSIS
-Invoke-Impersonation Author: Rob LP (@L3o4j)
-https://github.com/Leo4j/Invoke-Impersonation
+Token-Impersonation Author: Rob LP (@L3o4j)
+https://github.com/Leo4j/Token-Impersonation
 
 .DESCRIPTION
-Make_Token function written in powershell. Create a token with the provided credentials
+Make a Token (local admin rights not required) or Steal the Token of the specified Process ID (local admin rights required)
+
+.PARAMETER MakeToken
+Create a logon session with the specified credentials
+
+.PARAMETER Steal
+Steal the token of the specified Process ID
 
 .PARAMETER Domain
 Specify the domain info
@@ -20,8 +26,9 @@ Provide a password for the specified UserName
 Stops impersonating a token and reverts to previous one
 
 .EXAMPLE
-Invoke-Impersonation -Username "Administrator" -Domain "ferrari.local" -Password "P@ssw0rd!"
-Invoke-Impersonation -Rev2Self
+Token-Impersonation -MakeToken -Username "Administrator" -Domain "ferrari.local" -Password "P@ssw0rd!"
+Token-Impersonation -Steal -ProcessID 7440
+Token-Impersonation -Rev2Self
 #>
 
 # Define the required constants and structs
@@ -83,7 +90,7 @@ public class Kernel32 {
 }
 "@ -Language CSharp
 
-function Invoke-Impersonation {
+function Token-Impersonation {
     param (
         [Parameter(Mandatory=$false)]
         [string]$Username,
@@ -118,7 +125,7 @@ function Invoke-Impersonation {
         }
 
         if (-not $Rev2Self -and -not $StealToken -and (!$MakeToken -or -not $Username -or -not $Password -or -not $Domain)) {
-            throw "[-] For token creation using -MakeToken switch and Username, Password, and Domain are mandatory."
+            throw "[-] For token creation -MakeToken switch and Username, Password, and Domain are mandatory."
         }
     }
 
