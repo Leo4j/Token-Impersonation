@@ -21,7 +21,7 @@ Stops impersonating a token and reverts to previous one
 
 .EXAMPLE
 Invoke-Impersonation -Username "Administrator" -Domain "ferrari.local" -Password "P@ssw0rd!"
-Invoke-Impersonation -RevertToSelf
+Invoke-Impersonation -Rev2Self
 #>
 
 # Define the required constants and structs
@@ -95,7 +95,7 @@ function Invoke-Impersonation {
         [string]$Domain,
 
         [Parameter(Mandatory=$false)]
-        [switch]$RevertToSelf,
+        [switch]$Rev2Self,
 
         [Parameter(Mandatory=$false)]
         [switch]$StealToken,
@@ -109,21 +109,21 @@ function Invoke-Impersonation {
 	
     begin {
         # Check conditions to ensure correct input
-        if ($RevertToSelf -and ($StealToken -or $Username -or $Password -or $Domain -or $ProcessID)) {
-            throw "[-] RevertToSelf cannot be used with other parameters."
+        if ($Rev2Self -and ($StealToken -or $Username -or $Password -or $Domain -or $ProcessID)) {
+            throw "[-] Rev2Self cannot be used with other parameters."
         }
 
         if ($StealToken -and (!$ProcessID)) {
             throw "[-] ProcessID is required when using the Impersonate switch."
         }
 
-        if (-not $RevertToSelf -and -not $StealToken -and (!$MakeToken -or -not $Username -or -not $Password -or -not $Domain)) {
+        if (-not $Rev2Self -and -not $StealToken -and (!$MakeToken -or -not $Username -or -not $Password -or -not $Domain)) {
             throw "[-] For token creation using -MakeToken switch and Username, Password, and Domain are mandatory."
         }
     }
 
     process {
-        if ($RevertToSelf) {
+        if ($Rev2Self) {
             if ([Advapi32]::RevertToSelf()) {
                 Write-Output "[+] Successfully reverted to original user context."
             } else {
