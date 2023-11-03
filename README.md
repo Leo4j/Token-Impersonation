@@ -13,7 +13,7 @@ This logon type is designed specifically for cases where you need to specify alt
 
 This also means that the created token is not applicable to anything you may want to run on the current machine.
 
-Use `rev2self` to drop any impersonation that may be in play.
+Use `Rev2Self` to drop any impersonation that may be in play.
 
 ### Load in memory
 ```
@@ -32,10 +32,11 @@ Invoke-Impersonation -Steal -ProcessID 5380
 
 ### Rev2Self
 ```
-Invoke-Impersonation -rev2self
+Invoke-Impersonation -Rev2Self
 ```
 
-![image](https://github.com/Leo4j/Invoke-Impersonation/assets/61951374/8a16bca9-b214-4e76-ba0e-b577585e9185)
+![image](https://github.com/Leo4j/Invoke-Impersonation/assets/61951374/c20851d7-7d19-4e89-a5ad-2ecd45ef3cbf)
 
-![image](https://github.com/Leo4j/Invoke-Impersonation/assets/61951374/12025262-07fa-4df4-9c77-dc9d2f6bcc34)
+![image](https://github.com/Leo4j/Invoke-Impersonation/assets/61951374/c5f0d863-39e0-4441-b381-6586f12b0b68)
+
 
