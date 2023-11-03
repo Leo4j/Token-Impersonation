@@ -32,7 +32,7 @@ Invoke-Impersonation -Steal -ProcessID 5380
 
 ### Rev2Self
 ```
-Invoke-Impersonation -RevertToSelf
+Invoke-Impersonation -rev2self
 ```
 
 ![image](https://github.com/Leo4j/Invoke-Impersonation/assets/61951374/8a16bca9-b214-4e76-ba0e-b577585e9185)
